@@ -5,8 +5,8 @@ typedef enum Cell {
   CELL_ALIVE,
 } Cell;
 
-#define CELL_COLOR_DEAD CLITERAL(Color){0, 0, 0, 0}
-#define CELL_COLOR_ALIVE CLITERAL(Color){255, 255, 255, 255}
+#define CELL_COLOR_ALIVE YELLOW
+#define BACKGROUND_COLOR BLACK
 
 #define WORLD_WIDTH 100
 #define WORLD_HEIGHT 100
@@ -22,6 +22,9 @@ typedef struct World {
 
 #define GAME_FRAMERATE 120
 #define CONWAY_FRAMERATE 10
+
+#define PLAYER_MOVEMENT_SPEED 500.0f
+#define MOUSE_MOVEMENT_SPEED 5.0f
 
 int main(void) {
   InitWindow(800, 600, "conway's gmae of life");
@@ -117,11 +120,34 @@ int main(void) {
       world.current ^= 1;
     }
 
-    UpdateCamera(&camera, CAMERA_FREE);
+    // int keys[2] = {};
+    // int keyssize = 0;
+    // for (int i = 0; i < 2; i++) {
+    //   keys[i] = GetKeyPressed();
+    //   keyssize++;
+    // }
+
+    // handle camera movement
+    Vector3 movement = {0};
+    if (IsKeyDown(KEY_W)) {
+      movement.y += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+    }
+
+    // handle mouse movement
+    Vector3 rotation = {0};
+    Vector2 delta = GetMouseDelta();
+    if (delta.x != 0 || delta.y != 0) {
+      // not handling side rotation
+      rotation.x += delta.x * MOUSE_MOVEMENT_SPEED * GetFrameTime();
+      rotation.y += delta.y * MOUSE_MOVEMENT_SPEED * GetFrameTime();
+    }
+
+    UpdateCameraPro(&camera, movement, rotation, 0);
+
     BeginDrawing();
     BeginMode3D(camera);
 
-    ClearBackground(BLACK);
+    ClearBackground(BACKGROUND_COLOR);
 
     Buffer *buffer = world.current == 0 ? &world.a : &world.b;
 
