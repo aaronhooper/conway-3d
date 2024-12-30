@@ -20,6 +20,9 @@ typedef struct World {
   Buffer b;
 } World;
 
+#define GAME_FRAMERATE 120
+#define CONWAY_FRAMERATE 10
+
 int main(void) {
   InitWindow(800, 600, "conway's gmae of life");
   Camera3D camera = {0};
@@ -38,10 +41,10 @@ int main(void) {
   }
 
   DisableCursor();
-  SetTargetFPS(60);
+  SetTargetFPS(GAME_FRAMERATE);
 
   float acc = 0.0f;
-  float threshold = 1 / 10.0f;
+  float threshold = 1.0f / CONWAY_FRAMERATE;
   bool enable_update = true;
 
   while (!WindowShouldClose()) {
