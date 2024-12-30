@@ -8,12 +8,16 @@ typedef enum Cell {
 #define CELL_COLOR_DEAD CLITERAL(Color){0, 0, 0, 0}
 #define CELL_COLOR_ALIVE CLITERAL(Color){255, 255, 255, 255}
 
-#define WORLD_WIDTH 100
-#define WORLD_HEIGHT 100
+#define WORLD_WIDTH 5
+#define WORLD_HEIGHT 5
 #define SIDE_LENGTH 5.0f
 
+typedef Cell Buffer[WORLD_HEIGHT][WORLD_WIDTH];
+
 typedef struct World {
-  Cell grid[WORLD_HEIGHT][WORLD_WIDTH];
+  short current;
+  Buffer a;
+  Buffer b;
 } World;
 
 int main(void) {
@@ -26,9 +30,10 @@ int main(void) {
   camera.projection = CAMERA_PERSPECTIVE;
 
   World world = {0};
+  world.current = 0;
   for (int i = 0; i < WORLD_HEIGHT; i++) {
     for (int j = 0; j < WORLD_HEIGHT; j++) {
-      world.grid[i][j] = GetRandomValue(0, 1);
+      world.a[i][j] = GetRandomValue(0, 1);
     }
   }
 
@@ -36,12 +41,76 @@ int main(void) {
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
+    // update world
+    for (int i = 0; i < WORLD_HEIGHT; i++) {
+      for (int j = 0; j < WORLD_HEIGHT; j++) {
+        int nalive = 0;
+        Buffer *buffer;
+
+        if (world.current == 0) {
+          buffer = &world.a;
+        } else {
+          buffer = &world.b;
+        }
+
+        // get num of cell neighbors that are alive
+        for (int z = -1; z <= 1; z++) {
+          for (int w = -1; w <= 1; w++) {
+            if (z == 0 && w == 0) {
+              continue;
+            }
+
+            if (i + z < 0 || i + z >= WORLD_HEIGHT) {
+              continue;
+            }
+
+            if (j + w < 0 || j + w >= WORLD_WIDTH) {
+              continue;
+            }
+
+            // if neighbor is alive, increment the count
+            if ((*buffer)[i + z][j + w] == CELL_ALIVE) {
+              nalive++;
+            }
+          }
+        }
+
+        int cellstate = (*buffer)[i][j];
+
+        //* if cell is alive && live neighbors < 2, make cell dead
+        if (cellstate == CELL_ALIVE && nalive < 2) {
+          cellstate = CELL_DEAD;
+          //* if cell is alive && 2 <= live neighbors <= 3, do nothing
+        } else if (cellstate == CELL_ALIVE && 2 <= nalive && nalive <= 3) {
+          //* if cell is alive && live neighbors > 3, make cell dead
+        } else if (cellstate == CELL_ALIVE && nalive > 3) {
+          cellstate = CELL_DEAD;
+          //* if cell is dead && live neighbors == 3, make cell alive
+        } else if (cellstate == CELL_DEAD && nalive == 3) {
+          cellstate = CELL_ALIVE;
+        }
+
+        Buffer *nextbuffer;
+        if (world.current == 0) {
+          nextbuffer = &world.b;
+        } else {
+          nextbuffer = &world.a;
+        }
+
+        (*nextbuffer)[i][j] = cellstate;
+      }
+    }
+
+    // update done, flip buffer
+    world.current ^= 1;
+
     UpdateCamera(&camera, CAMERA_FREE);
     BeginDrawing();
     BeginMode3D(camera);
 
     ClearBackground(BLACK);
 
+    // draw world
     for (int i = 0; i < WORLD_HEIGHT; i++) {
       for (int j = 0; j < WORLD_HEIGHT; j++) {
         Vector3 position = {
@@ -56,8 +125,15 @@ int main(void) {
             .z = SIDE_LENGTH,
         };
 
-        if (world.grid[i][j]) {
-          DrawCubeWiresV(position, size, CELL_COLOR_ALIVE);
+        // draw cell from current buffer if alive
+        if (world.current == 0) {
+          if (world.a[i][j] == CELL_ALIVE) {
+            DrawCubeWiresV(position, size, CELL_COLOR_ALIVE);
+          }
+        } else {
+          if (world.b[i][j] == CELL_ALIVE) {
+            DrawCubeWiresV(position, size, CELL_COLOR_ALIVE);
+          }
         }
       }
     }
