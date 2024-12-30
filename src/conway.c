@@ -45,24 +45,24 @@ int main(void) {
 
   float acc = 0.0f;
   float threshold = 1.0f / CONWAY_FRAMERATE;
-  bool enable_update = true;
+  bool update_enabled = true;
 
   while (!WindowShouldClose()) {
     acc += GetFrameTime();
 
     if (acc > threshold) {
       acc -= threshold;
-      enable_update = true;
+      update_enabled = true;
     } else {
-      enable_update = false;
+      update_enabled = false;
     }
 
-    if (enable_update) {
+    if (update_enabled) {
       // update world
       for (int i = 0; i < WORLD_HEIGHT; i++) {
         for (int j = 0; j < WORLD_HEIGHT; j++) {
-          int nalive = 0;
           Buffer *prevbuffer = world.current == 0 ? &world.a : &world.b;
+          int nalive = 0;
 
           // get num of cell neighbors that are alive
           for (int z = -1; z <= 1; z++) {
