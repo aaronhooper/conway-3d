@@ -1,5 +1,4 @@
 #include "raylib.h"
-#include <math.h>
 
 typedef enum Cell {
   CELL_DEAD = 0,
@@ -60,13 +59,7 @@ int main(void) {
       for (int i = 0; i < WORLD_HEIGHT; i++) {
         for (int j = 0; j < WORLD_HEIGHT; j++) {
           int nalive = 0;
-          Buffer *buffer;
-
-          if (world.current == 0) {
-            buffer = &world.a;
-          } else {
-            buffer = &world.b;
-          }
+          Buffer *prevbuffer = world.current == 0 ? &world.a : &world.b;
 
           // get num of cell neighbors that are alive
           for (int z = -1; z <= 1; z++) {
@@ -84,7 +77,7 @@ int main(void) {
               }
 
               // if neighbor is alive, increment the count
-              if ((*buffer)[i + z][j + w] == CELL_ALIVE) {
+              if ((*prevbuffer)[i + z][j + w] == CELL_ALIVE) {
                 nalive++;
               }
             }
@@ -100,7 +93,7 @@ int main(void) {
            *
            * `(*buffer)[i][j]`
            */
-          int cellstate = (*buffer)[i][j];
+          int cellstate = (*prevbuffer)[i][j];
 
           if (cellstate == CELL_ALIVE && nalive < 2) {
             cellstate = CELL_DEAD;
@@ -112,13 +105,7 @@ int main(void) {
             cellstate = CELL_ALIVE;
           }
 
-          Buffer *nextbuffer;
-          if (world.current == 0) {
-            nextbuffer = &world.b;
-          } else {
-            nextbuffer = &world.a;
-          }
-
+          Buffer *nextbuffer = world.current == 0 ? &world.b : &world.a;
           (*nextbuffer)[i][j] = cellstate;
         }
       }
@@ -132,6 +119,8 @@ int main(void) {
     BeginMode3D(camera);
 
     ClearBackground(BLACK);
+
+    Buffer *buffer = world.current == 0 ? &world.a : &world.b;
 
     // draw world
     for (int i = 0; i < WORLD_HEIGHT; i++) {
@@ -149,14 +138,8 @@ int main(void) {
         };
 
         // draw cell from current buffer if alive
-        if (world.current == 0) {
-          if (world.a[i][j] == CELL_ALIVE) {
-            DrawCubeWiresV(position, size, CELL_COLOR_ALIVE);
-          }
-        } else {
-          if (world.b[i][j] == CELL_ALIVE) {
-            DrawCubeWiresV(position, size, CELL_COLOR_ALIVE);
-          }
+        if ((*buffer)[i][j] == CELL_ALIVE) {
+          DrawCubeWiresV(position, size, CELL_COLOR_ALIVE);
         }
       }
     }
