@@ -8,9 +8,9 @@ typedef enum Cell {
 #define CELL_COLOR_ALIVE YELLOW
 #define BACKGROUND_COLOR BLACK
 
-#define WORLD_WIDTH 100
-#define WORLD_HEIGHT 100
-#define SIDE_LENGTH 5.0f
+#define WORLD_WIDTH 200
+#define WORLD_HEIGHT 200
+#define SIDE_LENGTH 1.0f
 
 typedef Cell Buffer[WORLD_HEIGHT][WORLD_WIDTH];
 
@@ -23,13 +23,13 @@ typedef struct World {
 #define GAME_FRAMERATE 120
 #define CONWAY_FRAMERATE 10
 
-#define PLAYER_MOVEMENT_SPEED 500.0f
+#define PLAYER_MOVEMENT_SPEED 100.0f
 #define MOUSE_MOVEMENT_SPEED 5.0f
 
 int main(void) {
   InitWindow(800, 600, "conway's gmae of life");
   Camera3D camera = {0};
-  camera.position = (Vector3){10.0f, 10.0f, -500.0f};
+  camera.position = (Vector3){1.0f, 1.0f, -100.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
   camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   camera.fovy = 45.0f;
@@ -145,7 +145,7 @@ int main(void) {
     Vector3 rotation = {0};
     Vector2 delta = GetMouseDelta();
     if (delta.x != 0 || delta.y != 0) {
-      // not handling side rotation
+      // not handling side (z) rotation
       rotation.x += delta.x * MOUSE_MOVEMENT_SPEED * GetFrameTime();
       rotation.y += delta.y * MOUSE_MOVEMENT_SPEED * GetFrameTime();
     }
@@ -181,7 +181,7 @@ int main(void) {
       }
     }
 
-    DrawGrid(50, 50);
+    DrawGrid(50, 10);
 
     EndMode3D();
     EndDrawing();
