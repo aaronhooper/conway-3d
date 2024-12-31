@@ -175,7 +175,7 @@ int main(void) {
     for (int i = 0; i < WORLD_HEIGHT; i++) {
       for (int j = 0; j < WORLD_HEIGHT; j++) {
         Vector3 position = {
-            .x = j * SIDE_LENGTH,
+            .x = j * SIDE_LENGTH - WORLD_WIDTH * SIDE_LENGTH / 2.0f,
             .y = i * SIDE_LENGTH,
             .z = 0.0f,
         };
