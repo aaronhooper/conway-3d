@@ -51,7 +51,9 @@ int main(void) {
   bool update_enabled = true;
 
   while (!WindowShouldClose()) {
-    acc += GetFrameTime();
+    float dt = GetFrameTime();
+
+    acc += dt;
 
     if (acc > threshold) {
       acc -= threshold;
@@ -60,8 +62,8 @@ int main(void) {
       update_enabled = false;
     }
 
+    // only update cell buffer when we pass the threshold
     if (update_enabled) {
-      // update world
       for (int i = 0; i < WORLD_HEIGHT; i++) {
         for (int j = 0; j < WORLD_HEIGHT; j++) {
           Buffer *prevbuffer = world.current == 0 ? &world.a : &world.b;
@@ -101,6 +103,7 @@ int main(void) {
            */
           int cellstate = (*prevbuffer)[i][j];
 
+          // https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules
           if (cellstate == CELL_ALIVE && nalive < 2) {
             cellstate = CELL_DEAD;
           } else if (cellstate == CELL_ALIVE && 2 <= nalive && nalive <= 3) {
@@ -123,22 +126,22 @@ int main(void) {
     // handle camera movement
     Vector3 movement = {0};
     if (IsKeyDown(KEY_W)) {
-      movement.x += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+      movement.x += PLAYER_MOVEMENT_SPEED * dt;
     }
     if (IsKeyDown(KEY_S)) {
-      movement.x -= PLAYER_MOVEMENT_SPEED * GetFrameTime();
+      movement.x -= PLAYER_MOVEMENT_SPEED * dt;
     }
     if (IsKeyDown(KEY_A)) {
-      movement.y -= PLAYER_MOVEMENT_SPEED * GetFrameTime();
+      movement.y -= PLAYER_MOVEMENT_SPEED * dt;
     }
     if (IsKeyDown(KEY_D)) {
-      movement.y += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+      movement.y += PLAYER_MOVEMENT_SPEED * dt;
     }
     if (IsKeyDown(KEY_SPACE)) {
-      movement.z += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+      movement.z += PLAYER_MOVEMENT_SPEED * dt;
     }
     if (IsKeyDown(KEY_LEFT_CONTROL)) {
-      movement.z -= PLAYER_MOVEMENT_SPEED * GetFrameTime();
+      movement.z -= PLAYER_MOVEMENT_SPEED * dt;
     }
 
     // handle mouse movement
@@ -146,8 +149,8 @@ int main(void) {
     Vector2 delta = GetMouseDelta();
     if (delta.x != 0 || delta.y != 0) {
       // not handling side (z) rotation
-      rotation.x += delta.x * MOUSE_MOVEMENT_SPEED * GetFrameTime();
-      rotation.y += delta.y * MOUSE_MOVEMENT_SPEED * GetFrameTime();
+      rotation.x += delta.x * MOUSE_MOVEMENT_SPEED * dt;
+      rotation.y += delta.y * MOUSE_MOVEMENT_SPEED * dt;
     }
 
     UpdateCameraPro(&camera, movement, rotation, 0);
