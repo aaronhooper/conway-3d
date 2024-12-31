@@ -29,9 +29,9 @@ typedef struct World {
 int main(void) {
   InitWindow(800, 600, "conway's gmae of life");
   Camera3D camera = {0};
-  camera.position = (Vector3){10.0f, 400.0f, 10.0f};
+  camera.position = (Vector3){10.0f, 10.0f, -500.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
-  camera.up = (Vector3){0.0f, 0.0f, 1.0f};
+  camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   camera.fovy = 45.0f;
   camera.projection = CAMERA_PERSPECTIVE;
 
@@ -120,17 +120,25 @@ int main(void) {
       world.current ^= 1;
     }
 
-    // int keys[2] = {};
-    // int keyssize = 0;
-    // for (int i = 0; i < 2; i++) {
-    //   keys[i] = GetKeyPressed();
-    //   keyssize++;
-    // }
-
     // handle camera movement
     Vector3 movement = {0};
     if (IsKeyDown(KEY_W)) {
+      movement.x += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+    }
+    if (IsKeyDown(KEY_S)) {
+      movement.x -= PLAYER_MOVEMENT_SPEED * GetFrameTime();
+    }
+    if (IsKeyDown(KEY_A)) {
+      movement.y -= PLAYER_MOVEMENT_SPEED * GetFrameTime();
+    }
+    if (IsKeyDown(KEY_D)) {
       movement.y += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+    }
+    if (IsKeyDown(KEY_SPACE)) {
+      movement.z += PLAYER_MOVEMENT_SPEED * GetFrameTime();
+    }
+    if (IsKeyDown(KEY_LEFT_CONTROL)) {
+      movement.z -= PLAYER_MOVEMENT_SPEED * GetFrameTime();
     }
 
     // handle mouse movement
@@ -156,8 +164,8 @@ int main(void) {
       for (int j = 0; j < WORLD_HEIGHT; j++) {
         Vector3 position = {
             .x = j * SIDE_LENGTH,
-            .y = 0.0f,
-            .z = i * SIDE_LENGTH,
+            .y = i * SIDE_LENGTH,
+            .z = 0.0f,
         };
 
         Vector3 size = {
@@ -172,6 +180,8 @@ int main(void) {
         }
       }
     }
+
+    DrawGrid(50, 50);
 
     EndMode3D();
     EndDrawing();
