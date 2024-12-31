@@ -1,16 +1,19 @@
 #include "raylib.h"
 
+#define GAME_FRAMERATE 120
+#define CONWAY_FRAMERATE 10
+#define PLAYER_MOVEMENT_SPEED 100.0f
+#define MOUSE_MOVEMENT_SPEED 5.0f
+#define CELL_COLOR_ALIVE YELLOW
+#define BACKGROUND_COLOR BLACK
+#define WORLD_WIDTH 200
+#define WORLD_HEIGHT 200
+#define SIDE_LENGTH 1.0f
+
 typedef enum Cell {
   CELL_DEAD = 0,
   CELL_ALIVE,
 } Cell;
-
-#define CELL_COLOR_ALIVE YELLOW
-#define BACKGROUND_COLOR BLACK
-
-#define WORLD_WIDTH 200
-#define WORLD_HEIGHT 200
-#define SIDE_LENGTH 1.0f
 
 typedef Cell Buffer[WORLD_HEIGHT][WORLD_WIDTH];
 
@@ -20,14 +23,9 @@ typedef struct World {
   Buffer b;
 } World;
 
-#define GAME_FRAMERATE 120
-#define CONWAY_FRAMERATE 10
-
-#define PLAYER_MOVEMENT_SPEED 100.0f
-#define MOUSE_MOVEMENT_SPEED 5.0f
-
 int main(void) {
   InitWindow(1280, 720, "conway's gmae of life");
+
   Camera3D camera = {0};
   camera.position = (Vector3){1.0f, 1.0f, -100.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
@@ -37,6 +35,7 @@ int main(void) {
 
   World world = {0};
   world.current = 0;
+
   for (int i = 0; i < WORLD_HEIGHT; i++) {
     for (int j = 0; j < WORLD_HEIGHT; j++) {
       world.a[i][j] = GetRandomValue(0, 1);
@@ -46,17 +45,16 @@ int main(void) {
   DisableCursor();
   SetTargetFPS(GAME_FRAMERATE);
 
-  float acc = 0.0f;
+  float secs_since_update = 0.0f;
   float threshold = 1.0f / CONWAY_FRAMERATE;
   bool update_enabled = true;
 
   while (!WindowShouldClose()) {
     float dt = GetFrameTime();
+    secs_since_update += dt;
 
-    acc += dt;
-
-    if (acc > threshold) {
-      acc -= threshold;
+    if (secs_since_update > threshold) {
+      secs_since_update -= threshold;
       update_enabled = true;
     } else {
       update_enabled = false;
@@ -73,14 +71,13 @@ int main(void) {
           for (int z = -1; z <= 1; z++) {
             for (int w = -1; w <= 1; w++) {
               if (z == 0 && w == 0) {
+                // a cell cannot be a neighbor of itself
                 continue;
               }
 
-              if (i + z < 0 || i + z >= WORLD_HEIGHT) {
-                continue;
-              }
-
-              if (j + w < 0 || j + w >= WORLD_WIDTH) {
+              if ((i + z < 0 || i + z >= WORLD_HEIGHT) ||
+                  (j + w < 0 || j + w >= WORLD_WIDTH)) {
+                // out of bounds
                 continue;
               }
 
@@ -106,8 +103,6 @@ int main(void) {
           // https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules
           if (cellstate == CELL_ALIVE && nalive < 2) {
             cellstate = CELL_DEAD;
-          } else if (cellstate == CELL_ALIVE && 2 <= nalive && nalive <= 3) {
-
           } else if (cellstate == CELL_ALIVE && nalive > 3) {
             cellstate = CELL_DEAD;
           } else if (cellstate == CELL_DEAD && nalive == 3) {
@@ -123,8 +118,10 @@ int main(void) {
       world.current ^= 1;
     }
 
-    // handle camera movement
     Vector3 movement = {0};
+    Buffer *buffer = world.current == 0 ? &world.a : &world.b;
+
+    // handle camera movement
     if (IsKeyDown(KEY_W)) {
       movement.x += PLAYER_MOVEMENT_SPEED * dt;
     }
@@ -143,20 +140,6 @@ int main(void) {
     if (IsKeyDown(KEY_LEFT_CONTROL)) {
       movement.z -= PLAYER_MOVEMENT_SPEED * dt;
     }
-
-    // handle mouse movement
-    Vector3 rotation = {0};
-    Vector2 delta = GetMouseDelta();
-    if (delta.x != 0 || delta.y != 0) {
-      // not handling side (z) rotation
-      rotation.x += delta.x * MOUSE_MOVEMENT_SPEED * dt;
-      rotation.y += delta.y * MOUSE_MOVEMENT_SPEED * dt;
-    }
-
-    UpdateCameraPro(&camera, movement, rotation, 0);
-
-    Buffer *buffer = world.current == 0 ? &world.a : &world.b;
-
     if (IsKeyPressed(KEY_R)) {
       // reset world (random)
       for (int i = 0; i < WORLD_HEIGHT; i++) {
@@ -165,6 +148,18 @@ int main(void) {
         }
       }
     }
+
+    Vector3 rotation = {0};
+    Vector2 delta = GetMouseDelta();
+
+    // handle mouse movement
+    if (delta.x != 0 || delta.y != 0) {
+      // not handling side (z) rotation
+      rotation.x += delta.x * MOUSE_MOVEMENT_SPEED * dt;
+      rotation.y += delta.y * MOUSE_MOVEMENT_SPEED * dt;
+    }
+
+    UpdateCameraPro(&camera, movement, rotation, 0);
 
     BeginDrawing();
     BeginMode3D(camera);
@@ -175,7 +170,7 @@ int main(void) {
     for (int i = 0; i < WORLD_HEIGHT; i++) {
       for (int j = 0; j < WORLD_HEIGHT; j++) {
         Vector3 position = {
-            .x = j * SIDE_LENGTH - WORLD_WIDTH * SIDE_LENGTH / 2.0f,
+            .x = j * SIDE_LENGTH - (WORLD_WIDTH * SIDE_LENGTH / 2.0f),
             .y = i * SIDE_LENGTH,
             .z = 0.0f,
         };
