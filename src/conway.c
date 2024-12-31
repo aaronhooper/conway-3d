@@ -155,12 +155,21 @@ int main(void) {
 
     UpdateCameraPro(&camera, movement, rotation, 0);
 
+    Buffer *buffer = world.current == 0 ? &world.a : &world.b;
+
+    if (IsKeyPressed(KEY_R)) {
+      // reset world (random)
+      for (int i = 0; i < WORLD_HEIGHT; i++) {
+        for (int j = 0; j < WORLD_HEIGHT; j++) {
+          (*buffer)[i][j] = GetRandomValue(0, 1);
+        }
+      }
+    }
+
     BeginDrawing();
     BeginMode3D(camera);
 
     ClearBackground(BACKGROUND_COLOR);
-
-    Buffer *buffer = world.current == 0 ? &world.a : &world.b;
 
     // draw world
     for (int i = 0; i < WORLD_HEIGHT; i++) {
