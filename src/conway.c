@@ -27,7 +27,7 @@ typedef struct World {
 #define MOUSE_MOVEMENT_SPEED 5.0f
 
 int main(void) {
-  InitWindow(800, 600, "conway's gmae of life");
+  InitWindow(1280, 720, "conway's gmae of life");
   Camera3D camera = {0};
   camera.position = (Vector3){1.0f, 1.0f, -100.0f};
   camera.target = (Vector3){0.0f, 0.0f, 0.0f};
